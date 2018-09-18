@@ -1,0 +1,53 @@
+Dataset Used is custom_trust and custom_rating
+Loading the rating and trust dataset.....
+Dataset Loaded Successfully!!!
+Dividing The Rating Dataset into training and test.....
+completed!!!
+Intializing the matrices for trust propagation,similarity and user pair distances.................
+completed!!!
+Construction of Novel 2D Graph started........
+Construction of Novel 2D Graph Completed!!!!
+-----------------Printing the user_pair_distance matrix------------------------------
+0.0	0.0	1.0	1.0	0.52	1.0	1.2	1.0	
+0.0	0.0	1.12	1.0	1.33	2.24	0.5	1.12	
+9	9	0.0	9	9	9	9	9	
+9	9	9	0.0	9	9	9	9	
+0.69	1.66	1.12	9	0.0	1.08	2.0	1.87	
+1.0	2.24	9	1.0	1.08	0.0	2.24	1.0	
+1.12	0.67	1.0	1.2	2.24	2.24	0.0	1.0	
+9	9	9	9	2.12	1.0	9	0.0	
+
+
+
+----------------------------------------------------------------------------------------
+------------------------Started Generating Feasible Partitioning--------------------------------------------
+Completed Feasible Partitioning!!!
+-----------------------Printing the output of feasible partitioning at MARC=70--------------------
+8	
+4	
+2	7	
+5	
+3	
+1	
+6	
+
+
+
+---------------------------------------------------------------------------------------------------
+Started Calculating optimal parameters i.e alpha, beta and gamma for each cluster............
+Completed Calculation!!!
+------------------------Printing final_alpha variable values for each cluster------------------------
+0.0	0.3	0.0	
+
+
+----------------------------------------------------------------------------------------------------------
+------------------------Printing final_beta variable values for each cluster------------------------
+0.0	0.0	0.0	
+
+
+----------------------------------------------------------------------------------------------------------
+------------------------Printing final_gamma variable values for each cluster------------------------
+1.0	0.7	1.0	
+
+
+----------------------------------End Of Output File------------------------------------------------------------------------
