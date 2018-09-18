@@ -13,7 +13,7 @@ import math
 from sklearn.model_selection import train_test_split
 
 
-# In[2]:
+# In[15]:
 
 
 ## creating file for taking outputs 
@@ -91,7 +91,7 @@ file.write("Construction of Novel 2D Graph started........\n")
 
 # ### Construction of Novel 2D Graph
 
-# In[7]:
+# In[16]:
 
 
 #module for calculating similarity currently pearson similarity is used
@@ -139,9 +139,21 @@ pos = nx.circular_layout(g)
 nx.draw(g,pos,with_labels=True)
 nx.draw_networkx_edge_labels(g,pos)
 plt.draw()
-plt.show()  
+plt.savefig("pcc_graph.png")
+plt.gcf().clear()
+# plt.show()  
 
-print(similarity)
+# print(similarity)
+file.write("-----------------Printing the similarity matrix------------------------------\n")
+
+for item in similarity:
+    for sub_item in item:
+        file.write("%s\t" % sub_item)
+    file.write("\n")
+
+
+file.write("\n\n\n")
+file.write("----------------------------------------------------------------------------------------\n")
 
 
 #########################################################################
@@ -165,7 +177,9 @@ pos = nx.circular_layout(t)
 nx.draw(t,pos,with_labels=True)
 # nx.draw_networkx_edge_labels(t,pos)
 plt.draw()
-plt.show()
+plt.savefig("trust_chain_graph.png")
+plt.gcf().clear()
+# plt.show()
 
 # here input x is based on the six degree theory
 # if x is 2 then it means while calculating trust between two user
@@ -186,9 +200,22 @@ def calculateTrustChain(x):
                 trust_in_users[i-1][j-1] = 1
                 
                     
-                
+
+                    
+file.write("\n---------calculating chain of trust using at max 2 hops between two users----------\n")      
 calculateTrustChain(2)
-print(trust_in_users)
+# print(trust_in_users)
+
+file.write("-----------------Printing the trust_in_users matrix------------------------------\n")
+
+for item in trust_in_users:
+    for sub_item in item:
+        file.write("%s\t" % sub_item)
+    file.write("\n")
+
+
+file.write("\n\n\n")
+file.write("----------------------------------------------------------------------------------------\n")
 
 
 
@@ -214,7 +241,9 @@ pos = nx.circular_layout(combined_graph)
 nx.draw(combined_graph,pos,with_labels=True,node_size=100,font_size=10)
 nx.draw_networkx_edge_labels(combined_graph,pos,font_size=8)
 plt.draw()
-plt.show()
+plt.savefig("pcc_and_trust_combined_graph.png")
+plt.gcf().clear()
+# plt.show()
 
 
 
@@ -247,7 +276,7 @@ for i in range(0,total_users):
             
 
 
-print(user_pair_distance)
+# print(user_pair_distance)
 
 file.write("Construction of Novel 2D Graph Completed!!!!\n")
 file.write("-----------------Printing the user_pair_distance matrix------------------------------\n")
@@ -421,22 +450,22 @@ def feasible_partitioning(MARC):
 # In[9]:
 
 
-file.write("------------------------Started Generating Feasible Partitioning--------------------------------------------\n")
+# # file.write("------------------------Started Generating Feasible Partitioning--------------------------------------------\n")
 
-abc=feasible_partitioning(70)
-file.write("Completed Feasible Partitioning!!!\n")
+# abc=feasible_partitioning(70)
+# file.write("Completed Feasible Partitioning!!!\n")
 
-file.write("-----------------------Printing the output of feasible partitioning at MARC=70--------------------\n")
-# abc
+# file.write("-----------------------Printing the output of feasible partitioning at MARC=70--------------------\n")
+# # abc
 
-for item in abc:
-    for sub_item in item:
-        file.write("%s\t" % sub_item)
-    file.write("\n")
+# for item in abc:
+#     for sub_item in item:
+#         file.write("%s\t" % sub_item)
+#     file.write("\n")
 
-file.write("\n\n\n")
+# file.write("\n\n\n")
 
-file.write("---------------------------------------------------------------------------------------------------\n")
+# file.write("---------------------------------------------------------------------------------------------------\n")
 
 
 # ### Calculating optimal parameters i.e alpha, beta and gamma for each cluster
@@ -583,8 +612,22 @@ def optimal_parameter(cluster,targetClusterTestUserDict,final_clusters):
 #this code assigns optimal values of alpha,beta and gamma for each cluster
 
 def ABGof_cluster():
+    file.write("------------------------Started Generating Feasible Partitioning--------------------------------------------\n")
     final_clusters=feasible_partitioning(70)
-    print(final_clusters)
+#     print(final_clusters)
+    file.write("Completed Feasible Partitioning!!!\n")
+
+    file.write("------------------------Printing the output of feasible partitioning at MARC=70--------------------------\n")
+    file.write("------------------------Printing final_clusters variable values for each cluster------------------------\n")
+    
+    for item in final_clusters:
+        file.write("[")
+        for sub_item in item:
+            file.write("%s," % sub_item)
+        file.write("]\n")
+    
+    file.write("\n\n\n")
+    file.write("----------------------------------------------------------------------------------------------------------\n")
     targetClusterTestUserDict=testUserDict(final_clusters)
     length=len(final_clusters)
     final_alpha=[]
@@ -624,9 +667,9 @@ def ABGof_cluster():
     file.write("----------------------------------End Of Output File------------------------------------------------------------------------\n")
     
     
-    print(final_alpha)
-    print(final_beta)
-    print(final_gamma)
+#     print(final_alpha)
+#     print(final_beta)
+#     print(final_gamma)
 
 
     
