@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[55]:
 
 
 import pandas as pd
@@ -13,7 +13,7 @@ import math
 from sklearn.model_selection import train_test_split
 
 
-# In[15]:
+# In[68]:
 
 
 ## creating file for taking outputs 
@@ -25,17 +25,31 @@ file.write("Loading the rating and trust dataset.....\n")
 
 # ### Reading The Rating and Trust Dataset
 
-# In[3]:
+# In[57]:
+
+
+# #Loading the dataset
+
+# df_trust = pd.read_csv("custom_trust.csv")
+# df_rating = pd.read_csv("custom_rating.csv")
+# file.write("Dataset Loaded Successfully!!!\n")
 
 
 #Loading the dataset
 
-df_trust = pd.read_csv("custom_trust.csv")
-df_rating = pd.read_csv("custom_rating.csv")
+df_trust=pd.read_csv("trust_data.txt",delim_whitespace=True,encoding="utf-8", skipinitialspace=True)
+
+df_rating = pd.read_csv("ratings_data.txt")
+df_rating = df_rating[df_rating.userId<=100]
+df_rating = df_rating.reset_index(drop=True)
 file.write("Dataset Loaded Successfully!!!\n")
+df_trust = df_trust[(df_trust.user1<=100)&(df_trust.user2<=100)]
+df_trust = df_trust.reset_index(drop=True)
+# df_rating
+# df_trust
 
 
-# In[4]:
+# In[58]:
 
 
 #as the partitioning of dataset is only done for rating not for trust so below line finds the overall users in the system
@@ -46,12 +60,22 @@ file.write("Dividing The Rating Dataset into training and test.....\n")
 
 # ### Dividing The Rating Dataset into training and test
 
-# In[5]:
+# In[59]:
+
+
+# #dividing the dataset into training and test(80:20)
+# train=df_rating[0:26]
+# test=df_rating[26:32]
+
+# #df_rating is the training part of rating dataset and test is the testing part of the dataset
+# df_rating=train
+
+# file.write("completed!!!\n")
 
 
 #dividing the dataset into training and test(80:20)
-train=df_rating[0:26]
-test=df_rating[26:32]
+train=df_rating[0:7903]
+test=df_rating[7903:]
 
 #df_rating is the training part of rating dataset and test is the testing part of the dataset
 df_rating=train
@@ -61,7 +85,7 @@ file.write("completed!!!\n")
 
 # ### Intializing the matrices for trust propagation,similarity and user pair distances
 
-# In[6]:
+# In[60]:
 
 
 # total_users calculates the total users in the training dataset 
@@ -73,15 +97,18 @@ total_users = df_rating.userId.unique().shape[0]
 unique_user_list = df_rating.userId.unique().tolist()
 
 # following matrix i.e similarity is used for holding the pcc between a pair of users
-similarity = [[0 for x in range(total_users)] for y in range(total_users)]
+# similarity = [[0 for x in range(total_users)] for y in range(total_users)]
+similarity = np.zeros((total_users,total_users))
 
 # following matrix i.e trust_in_users is used for holding the chain of trust between a pair of users
-trust_in_users = [[0 for x in range(total_users_for_trust)] for y in range(total_users_for_trust)]
+# trust_in_users = [[0 for x in range(total_users_for_trust)] for y in range(total_users_for_trust)]
+trust_in_users = np.zeros((total_users_for_trust,total_users_for_trust))
 
 # following matrix i.e user_pair_distance is used for holding the distance between a pair of users
 #the formula used for calculating the distances between users is taken from novel 2d graph research paper
 #distance of 9 tells that there is no way between pair of users to calculate distance so 9 denotes the infinity
-user_pair_distance = [[0 for x in range(total_users)] for y in range(total_users)]
+# user_pair_distance = [[0 for x in range(total_users)] for y in range(total_users)]
+user_pair_distance = np.zeros((total_users,total_users))
 
 
 file.write("completed!!!\n")
@@ -91,14 +118,14 @@ file.write("Construction of Novel 2D Graph started........\n")
 
 # ### Construction of Novel 2D Graph
 
-# In[16]:
+# In[70]:
 
 
 #module for calculating similarity currently pearson similarity is used
 
-# g is a graph that is used to show pcc similarity between users
-g = nx.DiGraph()
-g.add_nodes_from(unique_user_list)
+# # g is a graph that is used to show pcc similarity between users
+# g = nx.DiGraph()
+# g.add_nodes_from(unique_user_list)
 
 
 #this function calculates similarity between the pair of user as needed using the pearson similarity coefficient
@@ -125,23 +152,23 @@ for i in range(0,total_users):
             y= round(calculateSimilarity(i+1,j+1,df_rating,df_rating), 2)
             if(not np.isnan(y)):
                 similarity[i][j]= y
-                
-#for adding edges and weights to the graph g
-for i in range(0,total_users):
-    for j in range(i+1,total_users):
-        if(similarity[i][j]>0):
-            g.add_edge(i+1,j+1, weight=similarity[i][j])
+#      
+# #for adding edges and weights to the graph g
+# for i in range(0,total_users):
+#     for j in range(i+1,total_users):
+#         if(similarity[i][j]>0):
+#             g.add_edge(i+1,j+1, weight=similarity[i][j])
 
             
-#this code shows the edge labels and final visualization of the graph 
-#here edge weights are pearson coorelation coefficient
-pos = nx.circular_layout(g)
-nx.draw(g,pos,with_labels=True)
-nx.draw_networkx_edge_labels(g,pos)
-plt.draw()
-plt.savefig("pcc_graph.png")
-plt.gcf().clear()
-# plt.show()  
+# #this code shows the edge labels and final visualization of the graph 
+# #here edge weights are pearson coorelation coefficient
+# pos = nx.circular_layout(g)
+# nx.draw(g,pos,with_labels=True)
+# nx.draw_networkx_edge_labels(g,pos)
+# plt.draw()
+# plt.savefig("pcc_graph.png")
+# plt.gcf().clear()
+# # plt.show()  
 
 # print(similarity)
 file.write("-----------------Printing the similarity matrix------------------------------\n")
@@ -163,7 +190,7 @@ file.write("--------------------------------------------------------------------
 
 #module for calculating chain of trust between users
 
-# t is a graph that is used to show trust between users
+# # t is a graph that is used to show trust between users
 t = nx.DiGraph()
 t.add_nodes_from(unique_user_list)
 
@@ -173,13 +200,13 @@ for i in range(0,rows_in_trust):
     t.add_edge(df_trust.loc[i, 'user1'],df_trust.loc[i, 'user2'])
 
 
-pos = nx.circular_layout(t)
-nx.draw(t,pos,with_labels=True)
-# nx.draw_networkx_edge_labels(t,pos)
-plt.draw()
-plt.savefig("trust_chain_graph.png")
-plt.gcf().clear()
-# plt.show()
+# pos = nx.circular_layout(t)
+# nx.draw(t,pos,with_labels=True)
+# # nx.draw_networkx_edge_labels(t,pos)
+# plt.draw()
+# plt.savefig("trust_chain_graph.png")
+# plt.gcf().clear()
+# # plt.show()
 
 # here input x is based on the six degree theory
 # if x is 2 then it means while calculating trust between two user
@@ -204,7 +231,7 @@ def calculateTrustChain(x):
                     
 file.write("\n---------calculating chain of trust using at max 2 hops between two users----------\n")      
 calculateTrustChain(2)
-# print(trust_in_users)
+print(trust_in_users)
 
 file.write("-----------------Printing the trust_in_users matrix------------------------------\n")
 
@@ -224,26 +251,26 @@ file.write("--------------------------------------------------------------------
 #########################################################################
 
 
-#every edge of combined_graph is double weighted i.e having similarity and trust as its weights
-#and the users as its nodes
-combined_graph = nx.DiGraph()
-combined_graph.add_nodes_from(unique_user_list)
+# #every edge of combined_graph is double weighted i.e having similarity and trust as its weights
+# #and the users as its nodes
+# combined_graph = nx.DiGraph()
+# combined_graph.add_nodes_from(unique_user_list)
 
-#this loop adds edges between two nodes if there exist any edge
-for i in range(0,total_users):
-    for j in range(0,total_users):
-        if(i!=j):
-            if((trust_in_users[i][j]!=0) or (similarity[i][j]!=0)):
-                combined_graph.add_edge(i+1,j+1, label='('+str(similarity[i][j])+','+str(trust_in_users[i][j])+')')
+# #this loop adds edges between two nodes if there exist any edge
+# for i in range(0,total_users):
+#     for j in range(0,total_users):
+#         if(i!=j):
+#             if((trust_in_users[i][j]!=0) or (similarity[i][j]!=0)):
+#                 combined_graph.add_edge(i+1,j+1, label='('+str(similarity[i][j])+','+str(trust_in_users[i][j])+')')
                 
-#this code shows the combined graph in circular fashion
-pos = nx.circular_layout(combined_graph)
-nx.draw(combined_graph,pos,with_labels=True,node_size=100,font_size=10)
-nx.draw_networkx_edge_labels(combined_graph,pos,font_size=8)
-plt.draw()
-plt.savefig("pcc_and_trust_combined_graph.png")
-plt.gcf().clear()
-# plt.show()
+# #this code shows the combined graph in circular fashion
+# pos = nx.circular_layout(combined_graph)
+# nx.draw(combined_graph,pos,with_labels=True,node_size=100,font_size=10)
+# nx.draw_networkx_edge_labels(combined_graph,pos,font_size=8)
+# plt.draw()
+# plt.savefig("pcc_and_trust_combined_graph.png")
+# plt.gcf().clear()
+# # plt.show()
 
 
 
@@ -293,7 +320,7 @@ file.write("--------------------------------------------------------------------
 
 # ### Generating Feasible Partitioning
 
-# In[8]:
+# In[62]:
 
 
 # file.write("Started Generating Feasible Partitioning............\n")
@@ -447,7 +474,7 @@ def feasible_partitioning(MARC):
     return partition1
 
 
-# In[9]:
+# In[63]:
 
 
 # # file.write("------------------------Started Generating Feasible Partitioning--------------------------------------------\n")
@@ -470,7 +497,7 @@ def feasible_partitioning(MARC):
 
 # ### Calculating optimal parameters i.e alpha, beta and gamma for each cluster
 
-# In[10]:
+# In[64]:
 
 
 #wuv is the convex combination of pearson,jaccard and trust
@@ -497,7 +524,7 @@ def WUV(alpha,beta,gamma,u,v):
 def jaccard(a, b):
     intersection=0
     union=0
-    for i in range(0,10):
+    for i in range(0,total_users):
         if(a[i]!=0 and b[i]!=0):
             intersection +=1
             union +=1
@@ -680,14 +707,14 @@ def ABGof_cluster():
 #########################################################################
 
 
-# In[11]:
+# In[65]:
 
 
 file.write("Started Calculating optimal parameters i.e alpha, beta and gamma for each cluster............\n")
 ABGof_cluster()
 
 
-# In[12]:
+# In[66]:
 
 
 file.close()
