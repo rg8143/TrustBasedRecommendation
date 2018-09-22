@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[55]:
+# In[1]:
 
 
 import pandas as pd
@@ -13,11 +13,11 @@ import math
 from sklearn.model_selection import train_test_split
 
 
-# In[68]:
+# In[2]:
 
 
 ## creating file for taking outputs 
-
+print("Opening file output.txt for writing outputs..........")
 file = open("output.txt",'w')
 file.write("Dataset Used is custom_trust and custom_rating\n")
 file.write("Loading the rating and trust dataset.....\n")
@@ -25,7 +25,7 @@ file.write("Loading the rating and trust dataset.....\n")
 
 # ### Reading The Rating and Trust Dataset
 
-# In[57]:
+# In[3]:
 
 
 # #Loading the dataset
@@ -36,50 +36,47 @@ file.write("Loading the rating and trust dataset.....\n")
 
 
 #Loading the dataset
-
+print("Loading the dataset.........")
 df_trust=pd.read_csv("trust_data.txt",delim_whitespace=True,encoding="utf-8", skipinitialspace=True)
 
 df_rating = pd.read_csv("ratings_data.txt")
-df_rating = df_rating[df_rating.userId<=100]
+df_rating = df_rating[df_rating.userId<=50]
 df_rating = df_rating.reset_index(drop=True)
 file.write("Dataset Loaded Successfully!!!\n")
-df_trust = df_trust[(df_trust.user1<=100)&(df_trust.user2<=100)]
+df_trust = df_trust[(df_trust.user1<=50)&(df_trust.user2<=50)]
 df_trust = df_trust.reset_index(drop=True)
-# df_rating
+print("dataset loaded successfully!")
+# test=df_rating[7903:]
+# test
 # df_trust
 
+# df_rating
 
-# In[58]:
+
+# In[14]:
 
 
 #as the partitioning of dataset is only done for rating not for trust so below line finds the overall users in the system
-total_users_for_trust = df_rating.userId.unique().shape[0]
-
+temp1 =df_rating.userId.unique()
+temp2 = df_rating.userId.unique().shape[0]
+total_users_for_trust=temp1[temp2-1]
 file.write("Dividing The Rating Dataset into training and test.....\n")
+# total_users_for_trust
 
 
 # ### Dividing The Rating Dataset into training and test
 
-# In[59]:
-
-
-# #dividing the dataset into training and test(80:20)
-# train=df_rating[0:26]
-# test=df_rating[26:32]
-
-# #df_rating is the training part of rating dataset and test is the testing part of the dataset
-# df_rating=train
-
-# file.write("completed!!!\n")
+# In[7]:
 
 
 #dividing the dataset into training and test(80:20)
-train=df_rating[0:7903]
-test=df_rating[7903:]
 
+train=df_rating[0:3226]
+test=df_rating[3226:]
+test = test.reset_index(drop=True)
 #df_rating is the training part of rating dataset and test is the testing part of the dataset
 df_rating=train
-
+# print("dataset divided successfully!!!")
 file.write("completed!!!\n")
 
 
@@ -92,7 +89,7 @@ file.write("completed!!!\n")
 #unique_user_list finds the unique users from the training dataset as there are redundant rows of the same user in the rating dataset
 
 file.write("Intializing the matrices for trust propagation,similarity and user pair distances.................\n")
-
+print("Intializing the matrices for trust propagation,similarity and user pair distances.................")
 total_users = df_rating.userId.unique().shape[0]
 unique_user_list = df_rating.userId.unique().tolist()
 
@@ -110,10 +107,11 @@ trust_in_users = np.zeros((total_users_for_trust,total_users_for_trust))
 # user_pair_distance = [[0 for x in range(total_users)] for y in range(total_users)]
 user_pair_distance = np.zeros((total_users,total_users))
 
-
+print("matrix intialization completed!!!")
 file.write("completed!!!\n")
 
 file.write("Construction of Novel 2D Graph started........\n")
+print("-----------Construction of Novel 2D Graph started-----------------")
 
 
 # ### Construction of Novel 2D Graph
@@ -142,9 +140,10 @@ def calculateSimilarity(i,j,dataset1,dataset2):
         pcc = 0
     return pcc
 
-    
+print("pcc similarity calculation started.........")
 # this is used to calculate similarity between every pair of users
 for i in range(0,total_users):
+    print("pcc similarity calculation started for user id.........",i+1)
     for j in range(0,total_users):
         if(i==j):
             similarity[i][j]=round(1.000, 2)
@@ -152,6 +151,7 @@ for i in range(0,total_users):
             y= round(calculateSimilarity(i+1,j+1,df_rating,df_rating), 2)
             if(not np.isnan(y)):
                 similarity[i][j]= y
+print("pcc similarity completed!!!")
 #      
 # #for adding edges and weights to the graph g
 # for i in range(0,total_users):
@@ -171,6 +171,7 @@ for i in range(0,total_users):
 # # plt.show()  
 
 # print(similarity)
+print("printing similarity matrix................")
 file.write("-----------------Printing the similarity matrix------------------------------\n")
 
 for item in similarity:
@@ -182,7 +183,7 @@ for item in similarity:
 file.write("\n\n\n")
 file.write("----------------------------------------------------------------------------------------\n")
 
-
+print("printing of similarity matrix completed!!!")
 #########################################################################
 #########################################################################
 #########################################################################
@@ -191,6 +192,7 @@ file.write("--------------------------------------------------------------------
 #module for calculating chain of trust between users
 
 # # t is a graph that is used to show trust between users
+print("started making graph for trust propagation.....")
 t = nx.DiGraph()
 t.add_nodes_from(unique_user_list)
 
@@ -198,7 +200,7 @@ rows_in_trust = df_trust.shape[0]
 
 for i in range(0,rows_in_trust):
     t.add_edge(df_trust.loc[i, 'user1'],df_trust.loc[i, 'user2'])
-
+print("completed making graph for trust propagation!!!")
 
 # pos = nx.circular_layout(t)
 # nx.draw(t,pos,with_labels=True)
@@ -215,6 +217,7 @@ def calculateTrustChain(x):
     for i in range(1,total_users_for_trust+1):
         for j in range(1,total_users_for_trust+1):
             if(i!=j):
+                print("calculating chain of trust between user id...",i,"...and user id...",j)
                 try:
                     path_length = nx.shortest_path_length(t,source=i,target=j)
                     if(path_length <= x+1):
@@ -228,10 +231,12 @@ def calculateTrustChain(x):
                 
                     
 
-                    
+print("calculating chain of trust with at max 2 hops.....")                    
 file.write("\n---------calculating chain of trust using at max 2 hops between two users----------\n")      
 calculateTrustChain(2)
-print(trust_in_users)
+print("chain of trust completed successfully!!!")
+print("printing trust_in_users matrix to file.........")
+# print(trust_in_users)
 
 file.write("-----------------Printing the trust_in_users matrix------------------------------\n")
 
@@ -244,7 +249,7 @@ for item in trust_in_users:
 file.write("\n\n\n")
 file.write("----------------------------------------------------------------------------------------\n")
 
-
+print("trust_in_users matrix printed successfully!!!")
 
 #########################################################################
 #########################################################################
@@ -286,10 +291,11 @@ file.write("--------------------------------------------------------------------
 #the formula used for calculating distance is taken from novel 2d graph algorithm
 #distance of 9 tells that there is no way between pair of users to calculate distance so it denotes infinity
 
-
+print("started calculating user_pair_distance...........")
 for i in range(0,total_users):
     for j in range(0,total_users):
         if(similarity[i][j]!=0 or trust_in_users[i][j]!=0):
+            print("calculating user_pair_distance between user id...",i+1,"...and user id...",j+1)
             d_s = 1-similarity[i][j]
             d_t = 1-trust_in_users[i][j]
             d_s_2 = d_s**2
@@ -301,11 +307,12 @@ for i in range(0,total_users):
             #here distance of 9 tells that there is no way between this pair of users so infinite distance
             user_pair_distance[i][j]=9
             
-
+print("user_pair_distance calculated successfully!!!")
 
 # print(user_pair_distance)
-
+print("-----------Construction of Novel 2D Graph completed successfully!!!-----------------")
 file.write("Construction of Novel 2D Graph Completed!!!!\n")
+print("printing user_pair_distance to file....")
 file.write("-----------------Printing the user_pair_distance matrix------------------------------\n")
 
 for item in user_pair_distance:
@@ -315,6 +322,8 @@ for item in user_pair_distance:
 
 
 file.write("\n\n\n")
+print("user_pair_distance writing successfull!!!")
+print("--------------------------------------------------------------------------------------------------")
 file.write("----------------------------------------------------------------------------------------\n")
 
 
@@ -328,6 +337,7 @@ file.write("--------------------------------------------------------------------
 def kmedoids(number_of_clusters):
     chosen_clusters=[]
     final_clusters=[]
+    print("-----inside kemdoids chosing...",number_of_clusters,"......random cluster centers----")
     for i in range(0,number_of_clusters):
         x=random.randint(1,total_users)
         while(x in chosen_clusters):
@@ -336,8 +346,10 @@ def kmedoids(number_of_clusters):
     for j in chosen_clusters:
         final_clusters.append([j])
     cont=True
+    print("checking for corresponding cluster for each users(inside kmedoids).....!!! --Total_clustesr=",number_of_clusters)
     while(cont):
         for i in range(0,total_users):
+            print("checking corresponding cluster for user id (inside kmedoids)....",i+1,"--Total_clusters=",number_of_clusters)
             if(not any(i+1 in sublist for sublist in final_clusters)):
                 min_distance=10
                 allocate_cluster=0
@@ -350,6 +362,10 @@ def kmedoids(number_of_clusters):
         cont=False
         row_num=0
         modification_dict={}
+        
+        print("All users mapped to their corresponding clusters(inside kmedoids)!!!---Total_clusters : ",number_of_clusters)
+        print("Checking each cluster for user which have minimum distance from all users in the same cluster(inside kmedoids).!-- Total_clusters :",number_of_clusters)
+        
         for i in final_clusters:
             min_cluster_distance=99999
             for j in range(0,len(i)):
@@ -367,6 +383,8 @@ def kmedoids(number_of_clusters):
                 modification_dict[row_num]=min_cluster                
             row_num+=1            
         if(cont):
+            print("one of the cluster center has changed(inside kmedoids).........")
+            print("Repeating the clustering with latest users as center(inside kmedoids).........")
             final_clusters=[]
             for z in chosen_clusters:
                     final_clusters.append([z])
@@ -376,6 +394,7 @@ def kmedoids(number_of_clusters):
 #     print(final_clusters)
 #     for i in range(0,len(final_clusters)):
 #         cluster_centers.append(final_clusters[i][0])
+    print("clustering into....",number_of_clusters,".....clusters completed(inside kmedoids)!!!--Total clusters formed:",number_of_clusters)
     return final_clusters    
 
 
@@ -394,7 +413,7 @@ def kmedoids(number_of_clusters):
 #clusters and assigns nearest cluster to the user in the test dataset
 
 def testUserDict(cluster_centers):
-    
+    print("checking test dataset user for their corresponding clusters...")
     testSetUser=test.userId.unique().tolist()
     targetClusterTestUserDict={}
     
@@ -404,6 +423,7 @@ def testUserDict(cluster_centers):
     for i in range(0,len(testSetUser)):
         nearestClusterIndex=0
         minDistance=10
+        print("checking test dataset user for their corresponding clusters...test Dataset row--",i+1)
         for j in range(0,len(cluster_centers)):
 
             pcc_simi=calculateSimilarity(testSetUser[i],cluster_centers[j][0],test,df_rating)
@@ -424,7 +444,7 @@ def testUserDict(cluster_centers):
                 minDistance=distance
                 nearestClusterIndex=j
         targetClusterTestUserDict[testSetUser[i]]=nearestClusterIndex
-
+    print("completed mapping of test dataset users into corresponding clusters successfully(inside testuserdict)!!!")
     return targetClusterTestUserDict
 
 
@@ -438,6 +458,7 @@ def rating_coverage(clusters,targetClusterTestUserDict):
     count=0
     length=test.shape[0]
     for i in range(0,length):
+        print("calculating rating coverage....for test Dataset row.....",i+1,"--for number of clusters:",len(clusters))
         userBelongsToCluster=targetClusterTestUserDict[test.iloc[i]['userId']]
         itemid=test.iloc[i]['movieId']
         for j in clusters[userBelongsToCluster]:
@@ -447,6 +468,7 @@ def rating_coverage(clusters,targetClusterTestUserDict):
                 break;       
     rc=count/length
     rc=round(rc,2)
+    print("rating coverage completed!!!--for number of clusters:",len(clusters))
     return rc*100
 
 
@@ -466,11 +488,17 @@ def feasible_partitioning(MARC):
     partition2=[]
     while(rc>=MARC):
         i=i+1
+        print("------------partioning the system into....",i,"........clusters------------------")
         partition2=kmedoids(i)
         targetClusterTestUserDict=testUserDict(partition2)
         rc = rating_coverage(partition2,targetClusterTestUserDict)
         partition1=partition2
-    final_cluster=partition1
+#     final_cluster=partition1
+    
+    print("\n\n\n######################################################################\n\n\n")
+    print("Total Partitions/clusters formed after feasible partitioning is : ",len(partition1))
+    print("\n\n\n######################################################################")
+    
     return partition1
 
 
@@ -504,6 +532,7 @@ def feasible_partitioning(MARC):
 #it is calculated between user u and user v
 
 def WUV(alpha,beta,gamma,u,v):
+    print("calculating wuv for (alpha,beta,gamma,u,v) :",alpha,beta,gamma,u,v)
     pcc=calculateSimilarity(u,v,test,df_rating)
     trust=trust_in_users[u-1][v-1]
     jac=jaccard(trust_in_users[u-1],trust_in_users[v-1])
@@ -522,6 +551,7 @@ def WUV(alpha,beta,gamma,u,v):
 #jaccard is needed to calculate wuv 
 
 def jaccard(a, b):
+    print("calculating jaccard!!!....")
     intersection=0
     union=0
     for i in range(0,total_users):
@@ -548,6 +578,7 @@ def predict_rating(final_clusters,userFromTest,userBelongsToCluster,itemid,alpha
 #     userBelongsToCluster=targetClusterTestUserDict[userFromTest]
     sum1=0
     sum2=0
+    print("predicting rating for user id(test)",userFromTest,"movie id:",itemid,"--with (alpha,beta,gamma) as ",alpha,beta,gamma)
     for i in range(0,len(final_clusters[userBelongsToCluster])):
         clusterUser=final_clusters[userBelongsToCluster][i]
         rowNum=df_rating[(df_rating.userId==clusterUser)&(df_rating.movieId==itemid)].empty
@@ -579,7 +610,7 @@ def calc_MAE(a,b,c,cluster,targetClusterTestUserDict,final_clusters):
     length=test.shape[0]
     
     for i in range(0,length):
-        
+        print("calculating mae for cluster no.--",cluster+1,"---Total_cluster = ",len(final_clusters),"--checking test dataset row--",i+1)
         userBelongsToCluster=targetClusterTestUserDict[test.iloc[i]['userId']]
         
         if(userBelongsToCluster==cluster):
@@ -614,11 +645,17 @@ def optimal_parameter(cluster,targetClusterTestUserDict,final_clusters):
     temp_beta=0
     temp_gamma=1
     for i in range(0,11,1):
-        for j in range(0,11,1):
+        for j in range(0,11-i,1):
+            print("-----calculating optimal parameter for cluster no....",cluster+1,"--with alpha =",temp_alpha,"--with beta=",temp_beta,"--")
             a=0.1*i
+            a=round(a,2)
             b=0.1*j
+            b=round(b,2)
             c=1-a-b
+            c=round(c,2)
+            print("calculating mae for cluster--",cluster+1)
             mae = calc_MAE(a,b,c,cluster,targetClusterTestUserDict,final_clusters)
+            print("mae calculated for cluster-----",cluster+1,"---!!!")
             if(mae < min):
                 min = mae
                 temp_alpha = a
@@ -627,6 +664,9 @@ def optimal_parameter(cluster,targetClusterTestUserDict,final_clusters):
     alpha=round(temp_alpha,2)
     beta=round(temp_beta,2)
     gamma=round(temp_gamma,2)
+    print("optimal_parameter for cluster no.--",cluster+1,"-----------completed!!!")
+    print("alpha=",alpha,"beta=",beta,"gamma=",gamma)
+    print("-------------------------------------------")
     return alpha,beta,gamma
 
 
@@ -639,14 +679,16 @@ def optimal_parameter(cluster,targetClusterTestUserDict,final_clusters):
 #this code assigns optimal values of alpha,beta and gamma for each cluster
 
 def ABGof_cluster():
+    print("------------------------Started Generating Feasible Partitioning--------------------------------------------")
     file.write("------------------------Started Generating Feasible Partitioning--------------------------------------------\n")
     final_clusters=feasible_partitioning(70)
 #     print(final_clusters)
+    print("feasible partitioning successfull!!!")
     file.write("Completed Feasible Partitioning!!!\n")
 
     file.write("------------------------Printing the output of feasible partitioning at MARC=70--------------------------\n")
     file.write("------------------------Printing final_clusters variable values for each cluster------------------------\n")
-    
+    print("printing output of feasible into file......")
     for item in final_clusters:
         file.write("[")
         for sub_item in item:
@@ -654,45 +696,50 @@ def ABGof_cluster():
         file.write("]\n")
     
     file.write("\n\n\n")
+    print("writing completed successfully!!!")
     file.write("----------------------------------------------------------------------------------------------------------\n")
+    print("calculating testUserDict using final clusters.........")
     targetClusterTestUserDict=testUserDict(final_clusters)
     length=len(final_clusters)
     final_alpha=[]
     final_beta=[]
     final_gamma=[]
     for i in range(0,length):
+        print("-------------------------calculating optimal parameter for cluster no....",i+1)
         tempa,tempb,tempc=optimal_parameter(i,targetClusterTestUserDict,final_clusters)
         final_alpha.append(tempa)
         final_beta.append(tempb)
         final_gamma.append(tempc)
-    
+    print("optimal parameter calculated successfully!!!")
     file.write("Completed Calculation!!!\n")
     
     file.write("------------------------Printing final_alpha variable values for each cluster------------------------\n")
-    
+    print("printing final_alpha to file....")
     for sub_item in final_alpha:
         file.write("%s\t" % sub_item)
         
     file.write("\n\n\n")
+    print("completed!!!")
     file.write("----------------------------------------------------------------------------------------------------------\n")
     
     file.write("------------------------Printing final_beta variable values for each cluster------------------------\n")
-    
+    print("printing final_beta to file....")
     for sub_item in final_beta:
         file.write("%s\t" % sub_item)
     
     file.write("\n\n\n")
+    print("completed!!!")
     file.write("----------------------------------------------------------------------------------------------------------\n")
     
     
     file.write("------------------------Printing final_gamma variable values for each cluster------------------------\n")
-    
+    print("printing final_gamma to file....")
     for sub_item in final_gamma:
         file.write("%s\t" % sub_item)
-    
+    print("completed!!!")
     file.write("\n\n\n")
     file.write("----------------------------------End Of Output File------------------------------------------------------------------------\n")
-    
+    print("--------------------------------End---------------------------------------")
     
 #     print(final_alpha)
 #     print(final_beta)
@@ -711,11 +758,13 @@ def ABGof_cluster():
 
 
 file.write("Started Calculating optimal parameters i.e alpha, beta and gamma for each cluster............\n")
+print("Started Calculating optimal parameters i.e alpha, beta and gamma for each cluster............")
 ABGof_cluster()
 
 
 # In[66]:
 
 
+print("closing ouput.txt file............!!!")
 file.close()
 
